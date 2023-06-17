@@ -16,22 +16,25 @@ const modalStyle = makeStyles((theme) => ({
 export default function CreateVmModal(props) {
     const modalClasses = modalStyle();
 
-    const {open, onClose, userId, subjectId} = props;
+    const {open, onClose, userId, subjectId, isForAll} = props;
     const [name, setName] = React.useState("");
     const [description, setDescription] = React.useState("");
     const [hasError, setHasError] = React.useState(false);
-    const [error, setError] = React.useState(false);
+    const [error, setError] = React.useState("");
     const [valid, setValid] = React.useState(false);
 
 
     const onError = (error, status) => {
+        setValid(true);
         setHasError(true);
-        setError(error);
+        setError(error.message);
         console.log(status);
         console.log(error);
     }
     const save = () => {
-        createItem(ENDPOINTS.USERS + "/" + userId + "/virtual-machines", {
+        setValid(false);
+        let endpoint = isForAll? ENDPOINTS.SUBJECTS + "/" + subjectId + "/virtual-machines" : ENDPOINTS.USERS + "/" + userId + "/virtual-machines";
+        createItem(endpoint, {
             instanceName: name,
             description: description,
             subjectId: subjectId,
@@ -39,7 +42,7 @@ export default function CreateVmModal(props) {
     }
 
     const refreshValid = (name, description) => {
-        if (name.length > 0 && description.length > 0) {
+        if (name.length > 5 && description.length > 0 && name.length < 50) {
             setValid(true);
         } else {
             setValid(false);
@@ -48,7 +51,7 @@ export default function CreateVmModal(props) {
 
     return (<Dialog open={open} onClose={onClose} aria-labelledby="form-dialog-title" fullWidth>
         <DialogTitle id="form-dialog-title">
-            Create subject
+            Create VM
         </DialogTitle>
         <DialogContent className={modalClasses.center}>
 

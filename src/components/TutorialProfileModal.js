@@ -26,13 +26,13 @@ export default function TutorialModal(props) {
                 Students
             </h1>
             <DialogContentText>
-                Use the "Enroll to subject" button to add a new subject from the list. When assigned a Virtual Machine, click it to view it's details. Open the "Remote desktop connection" app, enter your computer IP/DNS, then enter your username and password. Connect to your machine and work on your task.
+                Use the "Enroll to subject" button to add a new subject from the list. When assigned a Virtual Machine, click it to view it's details. Download the RDC connection, enter the password presented in the VM details on the web page. Connect to your machine and work on your task.
             </DialogContentText>
             <h1>
                 Professors
             </h1>
             <DialogContentText>
-                Create a new subject pressing the "Create subject button" or add a new subject using "Add subject" button. On each subject, add student searching by their id. Add a new VM to each student using the "Add new" button, specifying it's name and description, or createa a new VM for all students in a class using "Add class VM" button. Refresh after a few minutes. Click on the VM for each student.  Open the "Remote desktop connection" app, enter your computer IP/DNS, then enter your username and password. Connect and configure the task.
+                Create a new subject pressing the "Create subject button" or add a new subject using "Add subject" button. On each subject, add student searching by their id. Add a new VM to each student using the "Add new" button, specifying it's name and description, or createa a new VM for all students in a class using "Add class VM" button. Refresh after a few minutes. Click on the VM for each student.  Download the RDC connection, enter the password presented in the VM details on the web page. Connect and configure the task.
             </DialogContentText>
 
         </DialogContent>

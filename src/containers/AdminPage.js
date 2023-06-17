@@ -19,7 +19,7 @@ export default function AdminPage(props) {
 
     return (<>
         <div style={{backgroundColor: '#7fd3e2', minHeight: '100vh'}}>
-            <TopBar/>
+            <TopBar disableProfile/>
             <Grid container
                   spacing={2}
                   direction="column"

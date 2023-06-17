@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from "@mui/material";
 import {makeStyles} from '@mui/styles';
 import Button from "@mui/material/Button";
@@ -26,7 +26,19 @@ export default function UserProfileModal(props) {
     const [password, setPassword] = React.useState("");
     const [hasError, setHasError] = React.useState(false);
     const [error, setError] = React.useState(false);
-    const [valid, setValid] = React.useState(true);
+    const [isValid, setIsValid] = useState(false);
+    const [invalidFields, setInvalidFields] = useState({
+        username: false,
+        email: false,
+        name: false,
+        password: false
+    });
+    const [fieldsModified, setFieldsModified] = useState({
+        username: false,
+        email: false,
+        name: false,
+        password: false
+    });
 
 
     const successfulUserProfile = (json, status) => {
@@ -53,11 +65,56 @@ export default function UserProfileModal(props) {
         }, () => onClose(), onError)
     }
 
-    const refreshValid = (username, name, email) => {
-        if (username.length > 0 && name.length > 0 && email.length > 0) {
-            setValid(true);
-        } else {
-            setValid(false);
+    function changeUsername(event) {
+        setUsername(event.target.value);
+        setFieldsModified({...fieldsModified, username: true})
+        validateForm(event.target.value, email, name, password);
+    }
+
+    function changeName(event) {
+        setName(event.target.value);
+        setFieldsModified({...fieldsModified, name: true})
+        validateForm(username, email, event.target.value, password);
+    }
+
+    function changeEmail(event) {
+        setEmail(event.target.value);
+        setFieldsModified({...fieldsModified, email: true})
+        validateForm(username, event.target.value, name, password);
+    }
+
+    function changePassword(event) {
+        setPassword(event.target.value);
+        setFieldsModified({...fieldsModified, password: true})
+        validateForm(username, email, name, event.target.value);
+    }
+
+    function validateForm(username, email, name, password) {
+        const newInvalidFields = {
+            username : true,
+            email : true,
+            name : true,
+            password : true
+        }
+        if(username.length > 2) {
+            newInvalidFields.username = false;
+        }
+        if(email.length > 2 && email.includes("@") && email.includes(".")) {
+            newInvalidFields.email = false;
+        }
+        if(name.length > 3) {
+            newInvalidFields.name = false;
+        }
+        if(password.length > 2 || password.length === 0) {
+            newInvalidFields.password = false;
+        }
+        setInvalidFields(newInvalidFields);
+
+        if(!newInvalidFields.username && !newInvalidFields.name && !newInvalidFields.email && !newInvalidFields.password) {
+            setIsValid(true);
+        }
+        else {
+            setIsValid(false);
         }
     }
 
@@ -83,6 +140,9 @@ export default function UserProfileModal(props) {
 
         </DialogContent>
         <TextField
+            onBlur={changeUsername}
+            onChange={changeUsername}
+            error={fieldsModified.username && invalidFields.username}
             margin="dense"
             id="username"
             label="Username"
@@ -91,13 +151,12 @@ export default function UserProfileModal(props) {
             value={username}
             // error={!valid}
             // helperText={!valid ? errorMessage : ""}
-            onChange={(event) => {
-                setUsername(event.target.value);
-                refreshValid(event.target.value, name, email);
-            }}
             fullWidth
         />
         <TextField
+            onBlur={changeName}
+            onChange={changeName}
+            error={fieldsModified.name && invalidFields.name}
             margin="dense"
             id="name"
             label="Name"
@@ -106,13 +165,13 @@ export default function UserProfileModal(props) {
             value={name}
             // error={!valid}
             // helperText={!valid ? errorMessage : ""}
-            onChange={(event) => {
-                setName(event.target.value);
-                refreshValid(username, event.target.value, email);
-            }}
             fullWidth
         />
         <TextField
+
+            onBlur={changeEmail}
+            onChange={changeEmail}
+            error={fieldsModified.email && invalidFields.email}
             margin="dense"
             id="email"
             label="Email"
@@ -121,14 +180,13 @@ export default function UserProfileModal(props) {
             value={email}
             // error={!valid}
             // helperText={!valid ? errorMessage : ""}
-            onChange={(event) => {
-                setEmail(event.target.value)
-                refreshValid(username, name, event.target.value);
-            }}
             fullWidth
         />
 
         <TextField
+            onBlur={changePassword}
+            onChange={changePassword}
+            error={fieldsModified.password && invalidFields.password}
             margin="dense"
             id="email"
             label="New password"
@@ -137,9 +195,6 @@ export default function UserProfileModal(props) {
             value={password}
             // error={!valid}
             helperText="Only change if you want to update your password"
-            onChange={(event) => {
-                setPassword(event.target.value)
-            }}
             fullWidth
         />
 
@@ -157,7 +212,7 @@ export default function UserProfileModal(props) {
             </Button>
             <div style={{flex: '1 0 0'}}/>
             <Button
-                disabled={!valid}
+                disabled={!isValid}
                 onClick={event => save()}
                 color="primary">
                 Save

@@ -13,6 +13,7 @@ import {ENDPOINTS} from "../api/constants";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import Typography from "@mui/material/Typography";
+import YesNoDialog from "./YesNoDialog";
 
 
 export default function NewAccountsTable(props) {
@@ -23,6 +24,17 @@ export default function NewAccountsTable(props) {
     const [totalElements, seTotalElements] = React.useState(0);
     const [isError, setIsError] = React.useState(false);
     const [errorMessage, setErrorMessage] = React.useState('');
+    const [yesNoDialogOnYes, setYesNoDialogOnYes] = React.useState(() => () => {});
+    const [yesNoDialogOpen, setYesNoDialogOpen] = React.useState(false);
+
+    function onYesNoDialogClose() {
+        setYesNoDialogOpen(false);
+    }
+
+    function onYesNoDialogYes() {
+        setYesNoDialogOpen(false);
+        yesNoDialogOnYes();
+    }
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -86,10 +98,13 @@ export default function NewAccountsTable(props) {
                         style={{marginLeft: 5}}
                         variant="contained"
                         onClick={event => {
+                            setYesNoDialogOnYes( () => () => {
                             deleteItem(ENDPOINTS.USERS, row.userId, () => getInactiveUsers(page, rowsPerPage), () => {
                                 setIsError(true);
                                 setErrorMessage("Failed to delete user " + row.name);
                             })
+                            });
+                            setYesNoDialogOpen(true);
                         }}
                         color="secondary">
                         Reject
@@ -100,6 +115,7 @@ export default function NewAccountsTable(props) {
     }
 
     return (<>
+        <YesNoDialog onYes={onYesNoDialogYes} onNo={onYesNoDialogClose} enabled={yesNoDialogOpen} text="Are you sure you want to reject?" title="Reject account" />
         <TableContainer component={Paper} style={{marginTop: "10vh", width: "100vh"}}>
             <Typography component="h2" variant="h6" marginLeft={2} marginTop={1}>
                 New Accounts

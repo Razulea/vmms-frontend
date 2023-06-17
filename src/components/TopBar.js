@@ -11,7 +11,9 @@ import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
 import TutorialModal from "./TutorialProfileModal";
 
 
-export default function TopBar() {
+export default function TopBar(props) {
+
+    const {disableProfile = false} = props;
     const [userModalOpen, setUserModalOpen] = React.useState(false);
 
     const [tutorialModalOpen, setTutorialModalOpen] = React.useState(false);
@@ -48,13 +50,14 @@ export default function TopBar() {
                 <IconButton color="inherit" onClick={() => setTutorialModalOpen(true)}>
                     <QuestionMarkIcon/>
                 </IconButton>
-                <IconButton color="inherit" style={{marginLeft: 10}} onClick={() => setUserModalOpen(true)}>
-                    <PersonIcon/>
-                    {/*<Typography variant="body1">John Doe</Typography>*/}
-                </IconButton>
+                {
+                    !disableProfile &&
+                    <IconButton id="profileButton" color="inherit" style={{marginLeft: 10}} onClick={() => setUserModalOpen(true)}>
+                        <PersonIcon/>
+                    </IconButton>
+                }
                 <IconButton color="inherit" style={{marginLeft: 10}} onClick={() => navigate("/logout")}>
                     <LogoutIcon/>
-                    {/*<Typography variant="body1">Logout</Typography>*/}
                 </IconButton>
             </Toolbar>
         </MuiAppBar>        </>);

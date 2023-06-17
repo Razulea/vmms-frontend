@@ -26,6 +26,7 @@ import Alert from "@mui/material/Alert";
 import Snackbar from "@mui/material/Snackbar";
 import CreateSubjectModal from "./CreateSubjectModal";
 import CreateVmModal from "./CreateVmModal";
+import YesNoDialog from "./YesNoDialog";
 
 
 const generateRDCFile = (ip, password) => {
@@ -36,7 +37,9 @@ username:s:admin`;
 }
 
 function CollapsedSubject(props) {
-    const {users, subjectId, vms} = props;
+    const {users, subjectId, vms, onRefresh} = props;
+    const [yesNoDialogOnYes, setYesNoDialogOnYes] = React.useState(() => () => {});
+    const [yesNoDialogOpen, setYesNoDialogOpen] = React.useState(false);
     const [selectedUser, setSelectedUser] = React.useState("");
     const [selectedVm, setSelectedVm] = React.useState("");
     const [isError, setIsError] = React.useState(false);
@@ -46,9 +49,19 @@ function CollapsedSubject(props) {
     const [isCreateVMOpen, setIsCreatVMOpen] = React.useState(false);
     let labelId = subjectId + "-filled-label";
 
+    function onYesNoDialogClose() {
+        setYesNoDialogOpen(false);
+    }
+
+    function onYesNoDialogYes() {
+        setYesNoDialogOpen(false);
+        yesNoDialogOnYes();
+    }
+
 
     console.log(users)
     return (<Box sx={{margin: 1}}>
+        <YesNoDialog onYes={onYesNoDialogYes} onNo={onYesNoDialogClose} enabled={yesNoDialogOpen} text="Are you sure you want to terminate?" title="Terminate VM" />
         <FormControl variant="filled" sx={{m: 1, minWidth: 200}}>
             <InputLabel id={labelId}>Select user</InputLabel>
             <Select
@@ -101,7 +114,8 @@ function CollapsedSubject(props) {
         {
             isCreateVMOpen && (
                 <CreateVmModal open={isCreateVMOpen} onClose={() => {
-                    setIsCreatVMOpen(false)
+                    setIsCreatVMOpen(false);
+                    onRefresh();
                 }}
                                subjectId={subjectId}
                                userId={selectedUser}
@@ -200,18 +214,22 @@ function CollapsedSubject(props) {
                                 style={{marginLeft: 5}}
                                 variant="contained"
                                 onClick={event => {
-                                    vmAction({
-                                        "actionType": "TERMINATE",
-                                        "instances": [
-                                            vm.virtualMachineId
-                                        ]
-                                    }, () => {
-                                        setIsSuccess(true);
-                                        setSuccessMessage("Instance terminated.");
-                                    }, () => {
-                                        setIsError(true);
-                                        setErrorMessage("Instance could not be terminated");
+                                    setYesNoDialogOnYes( () => () => {
+                                        vmAction({
+                                            "actionType": "TERMINATE",
+                                            "instances": [
+                                                vm.virtualMachineId
+                                            ]
+                                        }, () => {
+                                            setIsSuccess(true);
+                                            setSuccessMessage("Instance terminated.");
+                                            onRefresh();
+                                        }, () => {
+                                            setIsError(true);
+                                            setErrorMessage("Instance could not be terminated");
+                                        });
                                     });
+                                    setYesNoDialogOpen(true);
                                 }}
                                 color="error">
                                 Terminate VM
@@ -242,6 +260,14 @@ export default function ProfessorSubjectTable(props) {
     const [subjects, setSubjects] = React.useState([]);
     const [error, setError] = React.useState(false);
     const [hasError, setHasError] = React.useState("");
+    const [isCreateForSubjectOpen, setIsCreateForSubjectOpen] = React.useState(false);
+    const [selectedSubject, setSelectedSubject] = React.useState("");
+
+    function refresh() {
+        getItems(ENDPOINTS.SUBJECTS, 0, 200, "professor==" + userId, null, "creator,users,vm", successfulSubjects, onError);
+    }
+
+
     const successfulSubjects = (subjectsPage, status) => {
         setSubjects(subjectsPage.content);
     }
@@ -257,11 +283,19 @@ export default function ProfessorSubjectTable(props) {
 
     useEffect(() => {
         getItems(ENDPOINTS.SUBJECTS, 0, 200, "professor==" + userId, null, "creator,users,vm", successfulSubjects, onError);
-    }, [])
+    }, []);
 
     useEffect(() => {
-        getItems(ENDPOINTS.SUBJECTS, 0, 200, "professor==" + userId, null, "creator,users,vm", successfulSubjects, onError);
-    }, [isAddModalOpen])
+        if(!isAddModalOpen) {
+            getItems(ENDPOINTS.SUBJECTS, 0, 200, "professor==" + userId, null, "creator,users,vm", successfulSubjects, onError);
+        }
+    }, [isAddModalOpen]);
+
+    useEffect(() => {
+        if(!isCreateForSubjectOpen) {
+            getItems(ENDPOINTS.SUBJECTS, 0, 200, "professor==" + userId, null, "creator,users,vm", successfulSubjects, onError);
+        }
+    }, [isCreateForSubjectOpen]);
 
     function Row(props) {
         const {row} = props;
@@ -287,13 +321,8 @@ export default function ProfessorSubjectTable(props) {
                         style={{marginLeft: 5}}
                         variant="contained"
                         onClick={event => {
-                            // enrollSubject(row.subjectId, () => {
-                            //     enrolledSubjects.push(row.subjectId);
-                            //     getSubjects(page, rowsPerPage, nameFilter);
-                            // }, () => {
-                            //     setIsError(true);
-                            //     setErrorMessage("Failed to enroll to " + row.name);
-                            // })
+                            setSelectedSubject(row.subjectId);
+                            setIsCreateForSubjectOpen(true);
                         }}
                         color="primary">
                         Create VM for all users
@@ -304,7 +333,8 @@ export default function ProfessorSubjectTable(props) {
                 <TableCell style={{paddingBottom: 0, paddingTop: 0}} colSpan={6}>
                     <Collapse in={open} timeout="auto" unmountOnExit>
                         <CollapsedSubject users={currentSubjectObj.map(s => s.users)[0]} subjectId={row.subjectId}
-                                          vms={currentSubjectObj.map(s => s.virtualMachines)[0]}/>
+                                          vms={currentSubjectObj.map(s => s.virtualMachines)[0]}
+                                          onRefresh = {refresh}/>
                     </Collapse>
                 </TableCell>
             </TableRow>
@@ -313,6 +343,17 @@ export default function ProfessorSubjectTable(props) {
 
 
     return (<>
+            {
+                isCreateForSubjectOpen && (
+                    <CreateVmModal open={isCreateForSubjectOpen} onClose={() => {
+                        setIsCreateForSubjectOpen(false)
+                    }}
+                                   subjectId={selectedSubject}
+                                   userId=""
+                                   isForAll
+                    />
+                )
+            }
             {
                 isAddModalOpen && <CreateSubjectModal open={isAddModalOpen} onClose={handleAddModalClose}/>
             }

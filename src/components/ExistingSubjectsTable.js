@@ -14,6 +14,7 @@ import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
+import YesNoDialog from "./YesNoDialog";
 
 
 export default function ExistingSubjectsTable() {
@@ -25,6 +26,17 @@ export default function ExistingSubjectsTable() {
     const [totalElements, seTotalElements] = React.useState(0);
     const [isError, setIsError] = React.useState(false);
     const [errorMessage, setErrorMessage] = React.useState('');
+    const [yesNoDialogOnYes, setYesNoDialogOnYes] = React.useState(() => () => {});
+    const [yesNoDialogOpen, setYesNoDialogOpen] = React.useState(false);
+
+    function onYesNoDialogClose() {
+        setYesNoDialogOpen(false);
+    }
+
+    function onYesNoDialogYes() {
+        setYesNoDialogOpen(false);
+        yesNoDialogOnYes();
+    }
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -85,10 +97,13 @@ export default function ExistingSubjectsTable() {
                         style={{marginLeft: 5}}
                         variant="contained"
                         onClick={event => {
+                            setYesNoDialogOnYes( () => () => {
                             deleteItem(ENDPOINTS.SUBJECTS, row.subjectId, () => getSubjects(page, rowsPerPage, nameFilter, emailFilter), () => {
                                 setIsError(true);
                                 setErrorMessage("Failed to delete subject " + row.name);
                             })
+                            });
+                            setYesNoDialogOpen(true);
                         }}
                         color="secondary">
                         Delete
@@ -99,6 +114,7 @@ export default function ExistingSubjectsTable() {
     }
 
     return (<>
+        <YesNoDialog onYes={onYesNoDialogYes} onNo={onYesNoDialogClose} enabled={yesNoDialogOpen} text="Are you sure you want to delete?" title="Reject account" />
         <TableContainer component={Paper} style={{marginTop: "5vh", width: "100vh"}}>
             <Typography component="h2" variant="h6" marginLeft={2} marginTop={1}>
                 Existing subjects

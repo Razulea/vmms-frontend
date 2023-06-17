@@ -34,6 +34,20 @@ export default function SignUp() {
 
     const [password, setPassword] = useState('');
     const [hasError, setHasError] = useState(false);
+    const [isValid, setIsValid] = useState(false);
+    const [invalidFields, setInvalidFields] = useState({
+        username: false,
+        email: false,
+        name: false,
+        password: false
+    });
+    const [fieldsModified, setFieldsModified] = useState({
+        username: false,
+        email: false,
+        name: false,
+        password: false
+    });
+
 
     function onLogin() {
 
@@ -62,23 +76,60 @@ export default function SignUp() {
     }
 
     function changeUsername(event) {
-        setUsername(event.target.value)
+        setUsername(event.target.value);
+        setFieldsModified({...fieldsModified, username: true})
+        validateForm(event.target.value, email, name, password);
     }
 
     function changeName(event) {
-        setName(event.target.value)
+        setName(event.target.value);
+        setFieldsModified({...fieldsModified, name: true})
+        validateForm(username, email, event.target.value, password);
     }
 
     function changeEmail(event) {
-        setEmail(event.target.value)
+        setEmail(event.target.value);
+        setFieldsModified({...fieldsModified, email: true})
+        validateForm(username, event.target.value, name, password);
     }
 
     function changeType(event) {
-        setType(event.target.value)
+        setType(event.target.value);
     }
 
     function changePassword(event) {
-        setPassword(event.target.value)
+        setPassword(event.target.value);
+        setFieldsModified({...fieldsModified, password: true})
+        validateForm(username, email, name, event.target.value);
+    }
+
+    function validateForm(username, email, name, password) {
+        const newInvalidFields = {
+            username : true,
+            email : true,
+            name : true,
+            password : true
+        }
+        if(username.length > 2) {
+            newInvalidFields.username = false;
+        }
+        if(email.length > 2 && email.includes("@") && email.includes(".")) {
+            newInvalidFields.email = false;
+        }
+        if(name.length > 3) {
+            newInvalidFields.name = false;
+        }
+        if(password.length > 2) {
+            newInvalidFields.password = false;
+        }
+        setInvalidFields(newInvalidFields);
+
+        if(!newInvalidFields.username && !newInvalidFields.name && !newInvalidFields.email && !newInvalidFields.password) {
+            setIsValid(true);
+        }
+        else {
+            setIsValid(false);
+        }
     }
 
     const handleSubmit = (event) => {
@@ -103,10 +154,13 @@ export default function SignUp() {
                     <LockOutlinedIcon/>
                 </Avatar>
                 <Typography component="h1" variant="h5">
-                    Sign in
+                    Register new account
                 </Typography>
-                <Box component="form" onSubmit={handleSubmit} noValidate sx={{mt: 1}}>
+                <Box component="form" onSubmit={handleSubmit} sx={{mt: 1}}>
                     <TextField
+                        onBlur={changeUsername}
+                        onChange={changeUsername}
+                        error={fieldsModified.username && invalidFields.username}
                         margin="normal"
                         required
                         fullWidth
@@ -114,10 +168,12 @@ export default function SignUp() {
                         label="Username"
                         name="username"
                         autoComplete="username"
-                        onChange={changeUsername}
                         autoFocus
                     />
                     <TextField
+                        onBlur={changeName}
+                        onChange={changeName}
+                        error={fieldsModified.name && invalidFields.name}
                         margin="normal"
                         required
                         fullWidth
@@ -125,9 +181,11 @@ export default function SignUp() {
                         label="Name"
                         name="name"
                         autoComplete="name"
-                        onChange={changeName}
                     />
                     <TextField
+                        onBlur={changeEmail}
+                        onChange={changeEmail}
+                        error={fieldsModified.email && invalidFields.email}
                         margin="normal"
                         required
                         fullWidth
@@ -135,9 +193,11 @@ export default function SignUp() {
                         label="Email"
                         name="email"
                         autoComplete="email"
-                        onChange={changeEmail}
                     />
                     <TextField
+                        onBlur={changePassword}
+                        onChange={changePassword}
+                        error={fieldsModified.password && invalidFields.password}
                         margin="normal"
                         required
                         fullWidth
@@ -145,7 +205,6 @@ export default function SignUp() {
                         label="Password"
                         type="password"
                         id="password"
-                        onChange={changePassword}
                         autoComplete="current-password"
                     />
                     <FormControl variant="filled" sx={{m: 1, minWidth: 120}}>
@@ -174,13 +233,14 @@ export default function SignUp() {
                         </Typography>
                     }
                     <Button
+                        disabled={!isValid}
                         type="submit"
                         fullWidth
                         variant="contained"
                         sx={{mt: 3, mb: 2}}
                         onClick={onLogin}
                     >
-                        Sign In
+                        Sign up
                     </Button>
                     <Grid container>
                         <Grid item xs>
