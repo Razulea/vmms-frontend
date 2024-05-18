@@ -64,6 +64,9 @@ export default function SignUp() {
         if (status === 200) {
             setHasError(false);
             setRegistered(true);
+            setTimeout(() => {
+                        navigate('/login');
+                    }, 2200);
         } else {
             setHasError(true);
             setRegistered(false);
